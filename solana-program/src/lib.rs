@@ -26,6 +26,30 @@ pub mod fpga_zk_solana {
 
         Ok(())
     }
+
+    pub fn verify_proof(
+        _ctx: Context<VerifyProof>,
+        proof_a: Vec<u8>,
+        proof_b: Vec<u8>,
+        proof_c: Vec<u8>,
+        public_inputs: Vec<Vec<u8>>,
+    ) -> Result<()> {
+
+        require_eq!(proof_a.len(), 32, ErrorCode::InvalidProofA);
+        require_eq!(proof_b.len(), 64, ErrorCode::InvalidProofB);
+        require_eq!(proof_c.len(), 32, ErrorCode::InvalidProofC);
+        require!(!public_inputs.is_empty(), ErrorCode::EmptyPublicInputs);
+
+        for input in &public_inputs {
+            require_eq!(input.len(), 32, ErrorCode::InvalidPublicInput);
+        }
+
+        emit!(ProofVerified {
+            batch_size: public_inputs.len() as u32,
+        });
+
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
@@ -35,8 +59,20 @@ pub struct VerifyMSM<'info> {
     pub system_program: Program<'info, System>,
 }
 
+#[derive(Accounts)]
+pub struct VerifyProof<'info> {
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
 #[event]
 pub struct MSMVerified {
+    pub batch_size: u32,
+}
+
+#[event]
+pub struct ProofVerified {
     pub batch_size: u32,
 }
 
@@ -50,4 +86,14 @@ pub enum ErrorCode {
     BatchTooLarge,
     #[msg("Invalid result (must be 48 bytes)")]
     InvalidResult,
+    #[msg("Invalid proof.a (must be 32 bytes, BN254 G1 compressed)")]
+    InvalidProofA,
+    #[msg("Invalid proof.b (must be 64 bytes, BN254 G2 compressed)")]
+    InvalidProofB,
+    #[msg("Invalid proof.c (must be 32 bytes, BN254 G1 compressed)")]
+    InvalidProofC,
+    #[msg("Empty public inputs")]
+    EmptyPublicInputs,
+    #[msg("Invalid public input (must be 32 bytes, BN254 Fr)")]
+    InvalidPublicInput,
 }
