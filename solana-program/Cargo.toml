@@ -1,0 +1,19 @@
+[package]
+name = "fpga-zk-solana"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anchor-lang = "0.29"
+ark-bls12-381 = "0.4"
+ark-ec = "0.4"
+ark-ff = "0.4"
+ark-serialize = "0.4"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
