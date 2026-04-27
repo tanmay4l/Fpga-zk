@@ -1,16 +1,17 @@
-use ark_bls12_381::G1Projective;
-use ark_ec::Group;
-use ark_ff::Zero;
-
+pub mod hw_accel;
 pub mod msm;
-pub use msm::MSMAccelerator;
+pub mod pippenger;
+
+pub use msm::NaiveMSM;
+pub use hw_accel::{MSMAccelerator, create_accelerator, HardwareMSM};
+pub use pippenger::PippengerMSM;
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ark_bls12_381::Fr;
+    use ark_bls12_381::{Fr, G1Projective};
     use ark_ec::CurveGroup;
-    use ark_ff::UniformRand;
+    use ark_ff::{UniformRand, Zero};
     use rand::rngs::OsRng;
 
     #[test]
@@ -20,7 +21,7 @@ mod tests {
         let point = G1Projective::rand(&mut rng).into_affine();
         let scalar = Fr::rand(&mut rng);
 
-        let accel = MSMAccelerator::new();
+        let accel = NaiveMSM::new();
         let result = accel.compute(&vec![point], &vec![scalar]).into_affine();
         let expected = (G1Projective::from(point) * scalar).into_affine();
 
@@ -37,7 +38,7 @@ mod tests {
             .collect();
         let scalars: Vec<_> = (0..n).map(|_| Fr::rand(&mut rng)).collect();
 
-        let accel = MSMAccelerator::new();
+        let accel = NaiveMSM::new();
         let result = accel.compute(&points, &scalars);
 
         let expected: G1Projective = points
@@ -56,7 +57,7 @@ mod tests {
         let point = G1Projective::rand(&mut rng).into_affine();
         let scalar = Fr::from(0u64);
 
-        let accel = MSMAccelerator::new();
+        let accel = NaiveMSM::new();
         let result = accel.compute(&vec![point], &vec![scalar]);
 
         assert_eq!(result, G1Projective::zero());

@@ -1,0 +1,74 @@
+# Rust
+target/
+Cargo.lock
+**/*.rs.bk
+*.pdb
+*.rlib
+*.dylib
+
+# Solana
+solana-program/target/
+solana-program/test-ledger/
+.anchor/
+.solana/
+test-ledger/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+.windows-build-tools
+
+# Environment
+.env
+.env.local
+*.key
+*.pem
+
+# Logs
+*.log
+/tmp/
+
+# FPGA/Hardware
+vivado/
+Vivado/
+*.cache/
+*.sim/
+*.ip_user_files/
+*.pb
+.Xil/
+*.wdb
+*.xsim/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+venv/
+env/
+
+# Node (if used for frontend)
+node_modules/
+npm-debug.log
+yarn-error.log
+dist/
+build/
+
+# Test artifacts
+.coverage
+coverage/
+*.profraw
+*.profdata
+
+# Local development
+local_validator.log
+validator.log

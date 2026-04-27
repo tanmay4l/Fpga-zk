@@ -1,12 +1,11 @@
 use ark_bls12_381::{Fr, G1Affine, G1Projective};
-use ark_ec::{CurveGroup, Group};
-use ark_ff::{BigInteger, PrimeField, Zero};
+use ark_ff::Zero;
 
-pub struct MSMAccelerator;
+pub struct NaiveMSM;
 
-impl MSMAccelerator {
+impl NaiveMSM {
     pub fn new() -> Self {
-        MSMAccelerator
+        NaiveMSM
     }
 
     pub fn compute(&self, points: &[G1Affine], scalars: &[Fr]) -> G1Projective {

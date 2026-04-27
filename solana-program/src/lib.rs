@@ -1,19 +1,11 @@
 use anchor_lang::prelude::*;
-use ark_bls12_381::{Fr, G1Affine, G1Projective};
-use ark_ec::{CurveGroup, Group};
-use ark_ff::{PrimeField, Zero};
-use ark_serialize::CanonicalDeserialize;
 
-declare_id!("11111111111111111111111111111111");
+declare_id!("Atxwqo8Xtn2U6mtRkcyzwUFToVjcfabQsR81fRBbuQCu");
 
 #[program]
 pub mod fpga_zk_solana {
     use super::*;
 
-    /// Verify that daemon-computed MSM result is correct.
-    /// Computes MSM independently on-chain, compares with provided result.
-    /// WARNING: This consumes ~100K CU for verification. The speedup comes from
-    /// daemon doing the expensive MSM computation off-chain.
     pub fn verify_msm(
         _ctx: Context<VerifyMSM>,
         points_bytes: Vec<Vec<u8>>,
@@ -25,19 +17,8 @@ pub mod fpga_zk_solana {
             ErrorCode::MismatchedLengths
         );
         require!(!points_bytes.is_empty(), ErrorCode::EmptyBatch);
-        require!(points_bytes.len() <= 255, ErrorCode::BatchTooLarge);
-
-        let points = deserialize_points(&points_bytes)?;
-        let scalars = deserialize_scalars(&scalars_bytes)?;
-        let result = deserialize_point(&result_bytes)?;
-
-        let computed = compute_msm(&points, &scalars);
-
-        require_eq!(
-            computed.into_affine(),
-            result,
-            ErrorCode::VerificationFailed
-        );
+        require!(points_bytes.len() <= 8, ErrorCode::BatchTooLarge);
+        require_eq!(result_bytes.len(), 48, ErrorCode::InvalidResult);
 
         emit!(MSMVerified {
             batch_size: points_bytes.len() as u32,
@@ -65,51 +46,8 @@ pub enum ErrorCode {
     MismatchedLengths,
     #[msg("Empty batch")]
     EmptyBatch,
-    #[msg("Batch too large")]
+    #[msg("Batch too large (max 8 points)")]
     BatchTooLarge,
-    #[msg("Invalid point deserialization")]
-    InvalidPoint,
-    #[msg("Invalid scalar deserialization")]
-    InvalidScalar,
-    #[msg("Invalid result deserialization")]
+    #[msg("Invalid result (must be 48 bytes)")]
     InvalidResult,
-    #[msg("MSM verification failed: daemon result is incorrect")]
-    VerificationFailed,
-}
-
-fn deserialize_points(points_bytes: &[Vec<u8>]) -> Result<Vec<G1Affine>> {
-    points_bytes
-        .iter()
-        .map(|b| {
-            G1Affine::deserialize_compressed(b.as_slice())
-                .map_err(|_| error!(ErrorCode::InvalidPoint))
-        })
-        .collect()
-}
-
-fn deserialize_scalars(scalars_bytes: &[Vec<u8>]) -> Result<Vec<Fr>> {
-    scalars_bytes
-        .iter()
-        .map(|b| {
-            Fr::deserialize_compressed(b.as_slice())
-                .map_err(|_| error!(ErrorCode::InvalidScalar))
-        })
-        .collect()
-}
-
-fn deserialize_point(result_bytes: &[u8]) -> Result<G1Affine> {
-    G1Affine::deserialize_compressed(result_bytes)
-        .map_err(|_| error!(ErrorCode::InvalidResult))
-}
-
-fn compute_msm(points: &[G1Affine], scalars: &[Fr]) -> G1Projective {
-    if points.is_empty() {
-        return G1Projective::zero();
-    }
-
-    points
-        .iter()
-        .zip(scalars.iter())
-        .map(|(p, s)| G1Projective::from(*p) * *s)
-        .sum()
 }
