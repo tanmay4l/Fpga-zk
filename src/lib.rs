@@ -1,6 +1,7 @@
 pub mod hw_accel;
 pub mod msm;
 pub mod pippenger;
+pub mod groth16;
 
 pub use msm::NaiveMSM;
 pub use hw_accel::{MSMAccelerator, create_accelerator, HardwareMSM};
@@ -11,7 +12,7 @@ mod tests {
     use super::*;
     use ark_bls12_381::{Fr, G1Projective};
     use ark_ec::CurveGroup;
-    use ark_ff::{UniformRand, Zero};
+    use ark_ff::Zero;
     use rand::rngs::OsRng;
 
     #[test]
